@@ -1,6 +1,6 @@
 {
   "name": "dsh-drillr",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "drillr for DeepSeek Harness: financial data and research tools for US, Japan and China A-share equities through drillr's hosted MCP server. Filings with full-text and fact search, read-only SQL over financial tables, company discovery, news and research signals.",
   "type": "module",
   "main": "index.js",

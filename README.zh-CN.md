@@ -34,6 +34,8 @@ dsh plugin --profile web add https://github.com/Little-Grebe-Inc/dsh-drillr/rele
 2. 在 DSH 打开 **设置 → drillr**，粘贴 key，点 **保存 key**。
 3. 页面显示 **Key：已保存**，几秒后显示 **工具：已连接**。
 
+保存前会先检查 key：粘成网页地址、格式不对、key 已撤销或连不上 gateway 都会被拒绝并给出提示，原来存着的 key 保持不动；只有 gateway 接受的 key 才会被写入。
+
 然后直接问智能体，例如：
 
 ```text

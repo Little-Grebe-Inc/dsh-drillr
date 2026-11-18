@@ -34,6 +34,8 @@ dsh plugin --profile web add https://github.com/Little-Grebe-Inc/dsh-drillr/rele
 2. In DSH open **Settings → drillr**, paste the key and click **Save key**.
 3. The page shows **Key: saved** and, a few seconds later, **Tools: connected**.
 
+The key is checked before it is stored: a pasted URL, a malformed token, a revoked key or an unreachable gateway is refused with a message, and the previously saved key stays in place. Only a key the gateway accepts replaces it.
+
 Then ask the agent, for example:
 
 ```text
