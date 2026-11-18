@@ -1,0 +1,60 @@
+{
+  "name": "dsh-drillr",
+  "version": "0.1.0",
+  "description": "drillr for DeepSeek Harness: financial data and research tools for US, Japan and China A-share equities through drillr's hosted MCP server. Filings with full-text and fact search, read-only SQL over financial tables, company discovery, news and research signals.",
+  "type": "module",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./client": "./client.js",
+    "./locale/*.json": "./locale/*.json",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "index.js",
+    "client.js",
+    "cordis.patch.yml",
+    "locale/*.json",
+    "assets/icon.png",
+    "README.md",
+    "README.zh-CN.md",
+    "LICENSE"
+  ],
+  "icon": "assets/icon.png",
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "drillr",
+    "mcp",
+    "finance",
+    "financial-data",
+    "stock",
+    "sec-filings",
+    "a-shares"
+  ],
+  "license": "MIT",
+  "author": "Little Grebe Inc.",
+  "homepage": "https://github.com/Little-Grebe-Inc/dsh-drillr",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Little-Grebe-Inc/dsh-drillr.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Little-Grebe-Inc/dsh-drillr/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "inject": [
+        "@deepseek-ai/dsh-client-runtime"
+      ]
+    }
+  }
+}

@@ -1,0 +1,22 @@
+# dsh-drillr bundle patch
+#
+# Two rows:
+#   drillr-settings  the drillr page under Settings, where you save your drillr
+#                    API key (stored in the DSH credential store as DRILLR_API_KEY)
+#   drillr-mcp       the official DSH MCP client connected to drillr's hosted
+#                    Streamable HTTP server; tools appear as mcp__drillr__*
+#
+# Until the key is saved, drillr-mcp waits for the credential instead of failing.
+- insert:
+    - id: drillr-settings
+      name: dsh-drillr
+    - id: drillr-mcp
+      name: '@deepseek-ai/dsh-mcp-client'
+      inject: [credentials]
+      config:
+        serverName: drillr
+        transport: streamable-http
+        url: https://gateway.drillr.ai/mcp/data
+        expandTemplates: true
+        headers:
+          Authorization: 'Bearer ${credential:DRILLR_API_KEY}'
