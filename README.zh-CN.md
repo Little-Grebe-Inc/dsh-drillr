@@ -14,9 +14,15 @@
 
 ## 安装
 
-**DSH 桌面版：** 打开 **插件 → 添加插件**，填入 `https://github.com/Little-Grebe-Inc/dsh-drillr`，点 **安装**。装了社区插件市场的话，也可以在市场里搜索 `drillr`。
+**DSH 桌面版：** 打开 **插件 → 添加插件**，填入 npm 包名 `dsh-drillr`，点 **安装**。也可以在 **插件 → 发现** 或社区插件市场里搜索 `drillr`。
 
 **命令行**（`dsh web` 或自定义 profile）：
+
+```sh
+dsh plugin --profile web add dsh-drillr
+```
+
+插件已发布到 [npm](https://www.npmjs.com/package/dsh-drillr)。也可以从 GitHub 安装：
 
 ```sh
 dsh plugin --profile web add github:Little-Grebe-Inc/dsh-drillr

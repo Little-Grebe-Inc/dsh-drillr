@@ -14,9 +14,15 @@ This plugin connects DeepSeek Harness (dsh) to drillr's hosted MCP server (`http
 
 ## Install
 
-**DSH Desktop:** open **Plugins → Add plugin** and enter `https://github.com/Little-Grebe-Inc/dsh-drillr`, then click **Install**. If you use the community plugin market, you can also search for `drillr` there.
+**DSH Desktop:** open **Plugins → Add plugin** and enter the npm package name `dsh-drillr`, then click **Install**. You can also search for `drillr` in **Plugins → Discover** or in the community plugin market.
 
 **Command line** (`dsh web` or a custom profile):
+
+```sh
+dsh plugin --profile web add dsh-drillr
+```
+
+The package is on [npm](https://www.npmjs.com/package/dsh-drillr). Installing from GitHub works too:
 
 ```sh
 dsh plugin --profile web add github:Little-Grebe-Inc/dsh-drillr
