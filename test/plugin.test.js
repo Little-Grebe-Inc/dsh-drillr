@@ -10,7 +10,7 @@ const here = path.dirname(fileURLToPath(import.meta.url))
 const target = process.env.DRILLR_PLUGIN_INDEX || path.join(here, '..', 'index.js')
 
 const plugin = await import(pathToFileURL(path.resolve(target)).href)
-const { apply, normalizeKey, probeKey, MCP_URL, STATUS_PATH, KEY_PATH } = plugin
+const { apply, normalizeKey, probeKey, MCP_URL, STATUS_PATH, KEY_PATH, SKILL } = plugin
 
 const GOOD = 'drl_75a85025_YkhVqPWfjF9syLvjbV45sGqFkGPD7wV1'
 const REAL_FETCH = globalThis.fetch
@@ -19,10 +19,15 @@ function fakeResponse(status, body) {
   return { status, ok: status >= 200 && status < 300, text: async () => body }
 }
 
-function setup() {
+function setup({ skills = true } = {}) {
   const store = new Map()
   const routes = new Map()
+  const providers = []
   const ctx = {
+    // Cordis optional injection: the callback runs only when the host has the services.
+    inject: (names, callback) => {
+      if (names.includes('skills') && skills) callback({ skills: { registerProvider: (factory) => void providers.push(factory()) } })
+    },
     effect: (fn) => fn(),
     get: (name) => (name === 'tools' ? { get: () => false } : undefined),
     credentials: {
@@ -46,7 +51,7 @@ function setup() {
     logger: { warn: () => {} },
   }
   apply(ctx)
-  return { store, routes }
+  return { store, routes, providers }
 }
 
 /** Dispatch like DSH's /api channel: exact path, declared method, WHATWG Request in and Response out. */
@@ -201,4 +206,27 @@ test('an oversized or malformed body is refused before the gateway is called', a
   assert.equal(bad.body.error, 'invalid-request')
   assert.equal(probed, false)
   assert.equal(store.size, 0)
+})
+
+test('the research skill is offered through the skill registry and loads its guide', async () => {
+  const { providers } = setup()
+  assert.equal(providers.length, 1)
+  const [provider] = providers
+  assert.equal(provider.name, 'dsh-drillr')
+  const [candidate] = await provider.list()
+  assert.equal(candidate.name, 'drillr-financial-research')
+  assert.match(candidate.name, /^[a-z0-9]+(?:-[a-z0-9]+)*$/)
+  assert.ok(candidate.description.length > 0 && candidate.description.length <= 1024)
+  const skill = await provider.get(candidate, {})
+  assert.equal(skill.name, SKILL.name)
+  assert.equal(skill.source, 'bundled')
+  assert.ok(!('rank' in skill) && !('locator' in skill), 'loaded definition drops catalog-only fields')
+  assert.match(skill.content, /get_table_schema/)
+  assert.match(skill.content, /00700\.HK/)
+})
+
+test('a host without a skill registry still gets the settings routes', () => {
+  const { routes, providers } = setup({ skills: false })
+  assert.equal(providers.length, 0)
+  assert.equal(routes.size, 2)
 })

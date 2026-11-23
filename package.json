@@ -1,7 +1,7 @@
 {
   "name": "dsh-drillr",
-  "version": "0.1.2",
-  "description": "drillr for DeepSeek Harness: financial data and research tools for US, Japan and China A-share equities through drillr's hosted MCP server. Filings with full-text and fact search, read-only SQL over financial tables, company discovery, news and research signals.",
+  "version": "0.1.3",
+  "description": "drillr for DeepSeek Harness: stock and financial data for US, Hong Kong, China A-share, Japan and Korea equities through drillr's hosted MCP server. Financial statements, filings with full-text search, stock prices, news, analyst ratings, insider trades and read-only SQL over financial tables.",
   "type": "module",
   "main": "index.js",
   "exports": {
@@ -14,6 +14,7 @@
     "index.js",
     "client.js",
     "cordis.patch.yml",
+    "skills/*.md",
     "locale/*.json",
     "assets/icon.png",
     "README.md",
@@ -31,7 +32,10 @@
     "financial-data",
     "stock",
     "sec-filings",
-    "a-shares"
+    "a-shares",
+    "stocks",
+    "hong-kong",
+    "investment-research"
   ],
   "license": "MIT",
   "author": "Little Grebe Inc.",

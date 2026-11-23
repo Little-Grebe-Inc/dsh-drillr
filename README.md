@@ -6,7 +6,7 @@
 
 # drillr for DeepSeek Harness
 
-Financial data and research tools for your DeepSeek Harness agent: filings, statements, company discovery, read-only SQL over financial tables, news and research signals for US, Japan and China A-share equities. Every figure is traced to the filing it came from.
+Financial data and research tools for your DeepSeek Harness agent: filings, statements, company discovery, read-only SQL over financial tables, news and research signals for US, Hong Kong, China A-share, Japan and Korea equities. Every figure is traced to the filing it came from.
 
 </div>
 
@@ -69,7 +69,7 @@ The plugin exposes drillr's ten MCP tools as `mcp__drillr__<tool>`:
 
 Reference for every tool: [drillr.ai/docs/mcp](https://drillr.ai/docs/mcp?utm_source=dsh&utm_medium=plugin&utm_content=readme).
 
-**Coverage.** Core equity coverage is US, Japan (`7203.T`) and China A-shares (`600519.SH` / `000001.SZ`). Some datasets are narrower (for example earnings calls US + Japan, analyst and ownership data US only); `get_table_schema` states each table's coverage.
+**Coverage.** Core equity coverage is US (`AAPL`), Hong Kong (`00700.HK`), China A-shares (`600519.SH` / `000001.SZ`), Japan (`7203.T`) and Korea (`005930.KS`). Some datasets are narrower (for example earnings calls US + Japan, analyst and ownership data US only); `get_table_schema` states each table's coverage.
 
 ## How it works
 
@@ -79,6 +79,8 @@ The bundle adds two rows to your profile:
 |---|---|---|
 | `drillr-settings` | `dsh-drillr` | The **Settings → drillr** page and its local routes that save, inspect and remove the `DRILLR_API_KEY` credential. The routes are DSH Fetch routes under `/api/drillr/`, so DSH checks every request (same-origin Host/Origin and the signed session cookie) before it reaches the plugin; other web pages open in your browser cannot call them |
 | `drillr-mcp` | `@deepseek-ai/dsh-mcp-client` | The official MCP client: Streamable HTTP to `https://gateway.drillr.ai/mcp/data` with `Authorization: Bearer ${credential:DRILLR_API_KEY}` |
+
+When the host has a skill registry, the settings row also adds the `drillr-financial-research` skill ([skills/drillr-financial-research.md](skills/drillr-financial-research.md)): which drillr tool to use for which question, reading a table's schema before writing SQL, and citing what the tools return. The agent loads it on its own when a question needs drillr; you can also invoke it by name.
 
 Until a key is saved, the MCP row waits for the credential instead of failing. Saving, replacing or removing the key takes effect without a restart. You can also provide the key as `DRILLR_API_KEY` in `$DSH_HOME/.env` or in the environment that starts dsh.
 

@@ -14,9 +14,16 @@
  * can neither read the key status nor replace or delete the key.
  *
  * A key is saved only after it passes two checks: it has to look like a drillr
- * key, and a live `initialize` call to the gateway has to accept it. A pasted
- * URL, a typo or a revoked key therefore can never replace a working one.
+ * key, and a live `tools/call` to the gateway has to accept it. A pasted URL, a
+ * typo or a revoked key therefore can never replace a working one.
+ *
+ * When the host has a skill registry, the plugin also offers the
+ * `drillr-financial-research` skill (skills/drillr-financial-research.md): when
+ * to reach for which drillr tool, so the agent reads table schemas before
+ * writing SQL and cites what the tools return.
  */
+import { readFile } from 'node:fs/promises'
+
 export const name = 'dsh-drillr'
 export const inject = ['connection', 'credentials']
 
@@ -27,6 +34,20 @@ export const KEY_PATH = '/api/drillr/key'
 const MAX_BODY_BYTES = 4096
 const MAX_KEY_LENGTH = 512
 const PROBE_TOOL = 'mcp__drillr__ticker_lookup'
+
+/** The research skill this bundle contributes to the agent's skill catalog. */
+export const SKILL = {
+  name: 'drillr-financial-research',
+  description:
+    'Use the drillr tools (mcp__drillr__*) for questions about listed companies and stocks in the US, Hong Kong, China A-shares, Japan and Korea: financial statements and ratios, earnings reports and filings, stock prices, news, analyst ratings and insider trades. Load before calling a drillr tool.',
+  invocation: { modelInvocable: true, userInvocable: true },
+  provider: 'dsh-drillr',
+  source: 'bundled',
+  // Same rank DSH gives the skills its own bundles ship (BUNDLED_SKILL_RANK).
+  rank: 600,
+  locator: null,
+}
+const SKILL_FILE = new URL('./skills/drillr-financial-research.md', import.meta.url)
 
 /** The hosted MCP endpoint the profile's MCP client row points at. */
 export const MCP_URL = 'https://gateway.drillr.ai/mcp/data'
@@ -117,7 +138,22 @@ export async function probeKey(key, fetchImpl = globalThis.fetch) {
   }
 }
 
+function registerSkill(skills) {
+  skills.registerProvider(() => ({
+    name: SKILL.provider,
+    list: () => Promise.resolve([SKILL]),
+    async get(_candidate, { signal } = {}) {
+      const content = await readFile(SKILL_FILE, { encoding: 'utf8', signal })
+      const { rank: _rank, locator: _locator, ...entry } = SKILL
+      return { ...entry, content }
+    },
+  }))
+}
+
 export function apply(ctx) {
+  // Optional: hosts without a skill registry still get the settings page and the tools.
+  ctx.inject(['skills'], (scope) => registerSkill(scope.skills))
+
   const toolsReady = () => {
     try {
       const tools = ctx.get('tools')

@@ -17,7 +17,7 @@ window.__ModuleLoader__.load({
       en: {
         label: 'drillr',
         title: 'drillr financial data',
-        intro: 'drillr gives the agent financial data and research tools for US, Japan and China A-share equities: filings with full-text and fact search, read-only SQL over financial tables, company discovery, news and research signals.',
+        intro: 'drillr gives the agent stock and financial data for US, Hong Kong, China A-share, Japan and Korea equities: financial statements, filings with full-text and fact search, stock prices, read-only SQL over financial tables, company discovery, news and research signals.',
         step: 'Create an API key at drillr.ai, paste it below and save. The key is checked and tried against the gateway before it is stored, so a wrong value cannot break a working connection. It is stored in the DSH credential store on this computer; the drillr tools (mcp__drillr__*) connect once it is saved.',
         createKey: 'Create an API key',
         docs: 'Tool reference',
@@ -31,7 +31,16 @@ window.__ModuleLoader__.load({
         tools: 'Tools',
         toolsReady: 'connected',
         toolsWaiting: 'not connected yet (refresh in a few seconds)',
-        saved: 'Saved. Ask the agent, for example: "Use drillr to look up the ticker for Apple".',
+        saved: 'Saved. Try one of the questions below in a new chat.',
+        examplesTitle: 'Try asking',
+        examples: [
+          'Compare revenue and net income of Tencent (00700.HK) and Alibaba over the last 8 quarters',
+          'How have gross margin and net margin of Kweichow Moutai changed over the last 5 years?',
+          'What are the main risk factors in NVIDIA\'s latest 10-K?',
+          'What were the important news about TSMC in the past week?',
+        ],
+        copy: 'Copy',
+        copied: 'Copied',
         removed: 'Removed.',
         loading: 'Loading…',
         errors: {
@@ -47,7 +56,7 @@ window.__ModuleLoader__.load({
       zh: {
         label: 'drillr',
         title: 'drillr 金融数据',
-        intro: 'drillr 为智能体提供美股、日股、A 股的金融数据与研究工具：公司公告与财报的全文和事实检索、财务报表只读 SQL、公司发现、新闻与研究信号。',
+        intro: 'drillr 为智能体提供美股、港股、A 股、日股和韩股的股票与金融数据：财务报表、公司公告与财报的全文和事实检索、股价行情、财务表只读 SQL、公司发现、新闻与研究信号。',
         step: '在 drillr.ai 创建 API key，粘贴到下面并保存。保存前会先校验格式并试连 gateway，失败不会覆盖正在用的 key。key 保存在本机 DSH 的凭据库里；保存后 drillr 工具（mcp__drillr__*）会自动连上。',
         createKey: '创建 API key',
         docs: '工具说明',
@@ -61,7 +70,16 @@ window.__ModuleLoader__.load({
         tools: '工具',
         toolsReady: '已连接',
         toolsWaiting: '尚未连接（几秒后刷新）',
-        saved: '已保存。可以直接问智能体，例如：「用 drillr 查一下苹果公司的股票代码」。',
+        saved: '已保存。新开一个对话，试试下面的问题。',
+        examplesTitle: '试试这样问',
+        examples: [
+          '对比腾讯（00700.HK）和阿里巴巴近 8 个季度的营收和净利润',
+          '贵州茅台近 5 年的毛利率和净利率是怎么变化的？',
+          '英伟达最新一份 10-K 里提到了哪些主要风险？',
+          '过去一周关于台积电有哪些重要新闻？',
+        ],
+        copy: '复制',
+        copied: '已复制',
         removed: '已删除。',
         loading: '加载中…',
         errors: {
@@ -94,6 +112,9 @@ window.__ModuleLoader__.load({
       meta: { display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '4px 12px', margin: 0 },
       ok: { color: 'var(--dsw-alias-state-success-primary, #22a06b)', margin: 0 },
       bad: { color: 'var(--dsw-alias-state-error-primary, #d93026)', margin: 0 },
+      subtitle: { margin: '4px 0 6px', fontWeight: 600 },
+      examples: { listStyle: 'none', padding: 0, margin: 0, display: 'grid', gap: 6 },
+      example: { display: 'flex', gap: 12, alignItems: 'center', padding: '7px 10px', borderRadius: 8, border: '1px solid var(--dsw-alias-border-l2)' },
     }
 
     function request(method, path, body) {
@@ -108,6 +129,32 @@ window.__ModuleLoader__.load({
         if (!res.ok) throw new Error(json.error || 'HTTP ' + res.status)
         return json
       }))
+    }
+
+    function Example({ text, t }) {
+      const [copied, setCopied] = useState(false)
+      const copy = () => {
+        const done = () => { setCopied(true); setTimeout(() => setCopied(false), 1500) }
+        // Copy synchronously inside the click first: some browsers refuse the async
+        // clipboard on embedded or plain-HTTP pages, and once that promise settles
+        // the click no longer counts as a user gesture for execCommand.
+        const area = document.createElement('textarea')
+        area.value = text
+        area.setAttribute('readonly', '')
+        area.style.position = 'fixed'
+        area.style.opacity = '0'
+        document.body.appendChild(area)
+        area.select()
+        let ok = false
+        try { ok = document.execCommand('copy') } catch { ok = false }
+        document.body.removeChild(area)
+        if (ok) done()
+        else if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, () => {})
+      }
+      return h('li', { style: S.example },
+        h('span', { style: { flex: 1 } }, text),
+        h('button', { type: 'button', style: S.link, onClick: copy }, copied ? t.copied : t.copy)
+      )
     }
 
     function DrillrSettings() {
@@ -174,7 +221,13 @@ window.__ModuleLoader__.load({
           )
           : h('p', { style: S.muted }, t.loading),
         message ? h('p', { style: S.ok }, message) : null,
-        error ? h('p', { style: S.bad }, error) : null
+        error ? h('p', { style: S.bad }, error) : null,
+        status && status.configured
+          ? h('div', null,
+            h('p', { style: S.subtitle }, t.examplesTitle),
+            h('ul', { style: S.examples }, t.examples.map((text) => h(Example, { key: text, text, t })))
+          )
+          : null
       )
     }
 

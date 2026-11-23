@@ -6,7 +6,7 @@
 
 # drillr · DeepSeek Harness 插件
 
-给 DeepSeek Harness 智能体的金融数据与研究工具：公司公告与财报、财务报表、公司发现、财务表只读 SQL、新闻与研究信号，覆盖美股、日股和 A 股，每个数字都能追溯到出处文件。
+给 DeepSeek Harness 智能体的金融数据与研究工具：公司公告与财报、财务报表、公司发现、财务表只读 SQL、新闻与研究信号，覆盖美股、港股、A 股、日股和韩股，每个数字都能追溯到出处文件。
 
 </div>
 
@@ -69,7 +69,7 @@ dsh plugin --profile web add https://github.com/Little-Grebe-Inc/dsh-drillr/rele
 
 每个工具的说明见 [drillr.ai/docs/mcp](https://drillr.ai/docs/mcp?utm_source=dsh&utm_medium=plugin&utm_content=readme)。
 
-**覆盖范围。** 核心股票覆盖美股、日股（`7203.T`）和 A 股（`600519.SH` / `000001.SZ`）。部分数据集范围更窄（例如电话会只有美股和日股，分析师与持股数据只有美股）；每张表的覆盖范围以 `get_table_schema` 的说明为准。
+**覆盖范围。** 核心股票覆盖美股（`AAPL`）、港股（`00700.HK`）、A 股（`600519.SH` / `000001.SZ`）、日股（`7203.T`）和韩股（`005930.KS`）。部分数据集范围更窄（例如电话会只有美股和日股，分析师与持股数据只有美股）；每张表的覆盖范围以 `get_table_schema` 的说明为准。
 
 ## 工作方式
 
@@ -79,6 +79,8 @@ dsh plugin --profile web add https://github.com/Little-Grebe-Inc/dsh-drillr/rele
 |---|---|---|
 | `drillr-settings` | `dsh-drillr` | **设置 → drillr** 页面，以及保存、查看、删除 `DRILLR_API_KEY` 凭据的本机接口。接口是 `/api/drillr/` 下的 DSH Fetch 路由，每个请求先过 DSH 的访问检查（同源 Host/Origin 和签名会话 cookie）才到插件；浏览器里打开的其他网页调用不了 |
 | `drillr-mcp` | `@deepseek-ai/dsh-mcp-client` | 官方 MCP 客户端：Streamable HTTP 连 `https://gateway.drillr.ai/mcp/data`，请求头 `Authorization: Bearer ${credential:DRILLR_API_KEY}` |
+
+宿主有 skill 注册表时，设置这一行还会加上 `drillr-financial-research` skill（[skills/drillr-financial-research.md](skills/drillr-financial-research.md)）：什么问题用哪个 drillr 工具、写 SQL 前先读表结构、回答时注明数据出处。问题需要 drillr 时智能体会自己加载它，你也可以按名字调用。
 
 key 保存之前，MCP 这一行会等待凭据，不会报错。保存、替换或删除 key 都无需重启。也可以把 key 写成 `$DSH_HOME/.env` 里的 `DRILLR_API_KEY`，或放在启动 dsh 的环境变量里。
 
