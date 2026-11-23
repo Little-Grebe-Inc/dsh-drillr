@@ -30,7 +30,7 @@ dsh plugin --profile web add https://github.com/Little-Grebe-Inc/dsh-drillr/rele
 
 ## Set up your key
 
-1. Create an API key at [drillr.ai/account/api-keys](https://drillr.ai/account/api-keys).
+1. Create an API key at [drillr.ai/account/api-keys](https://drillr.ai/account/api-keys?utm_source=dsh&utm_medium=plugin&utm_content=readme).
 2. In DSH open **Settings → drillr**, paste the key and click **Save key**.
 3. The page shows **Key: saved** and, a few seconds later, **Tools: connected**.
 
@@ -61,7 +61,7 @@ The plugin exposes drillr's ten MCP tools as `mcp__drillr__<tool>`:
 | Signal | `industry_inflections` | Industry inflections from structured research of US-listed companies' earnings calls |
 | Signal | `ai_adoption` | Concrete enterprise AI applications disclosed in US companies' earnings calls |
 
-Reference for every tool: [drillr.ai/docs/mcp](https://drillr.ai/docs/mcp).
+Reference for every tool: [drillr.ai/docs/mcp](https://drillr.ai/docs/mcp?utm_source=dsh&utm_medium=plugin&utm_content=readme).
 
 **Coverage.** Core equity coverage is US, Japan (`7203.T`) and China A-shares (`600519.SH` / `000001.SZ`). Some datasets are narrower (for example earnings calls US + Japan, analyst and ownership data US only); `get_table_schema` states each table's coverage.
 
@@ -71,14 +71,14 @@ The bundle adds two rows to your profile:
 
 | Row | Package | Role |
 |---|---|---|
-| `drillr-settings` | `dsh-drillr` | The **Settings → drillr** page and its local routes that save, inspect and remove the `DRILLR_API_KEY` credential |
+| `drillr-settings` | `dsh-drillr` | The **Settings → drillr** page and its local routes that save, inspect and remove the `DRILLR_API_KEY` credential. The routes are DSH Fetch routes under `/api/drillr/`, so DSH checks every request (same-origin Host/Origin and the signed session cookie) before it reaches the plugin; other web pages open in your browser cannot call them |
 | `drillr-mcp` | `@deepseek-ai/dsh-mcp-client` | The official MCP client: Streamable HTTP to `https://gateway.drillr.ai/mcp/data` with `Authorization: Bearer ${credential:DRILLR_API_KEY}` |
 
 Until a key is saved, the MCP row waits for the credential instead of failing. Saving, replacing or removing the key takes effect without a restart. You can also provide the key as `DRILLR_API_KEY` in `$DSH_HOME/.env` or in the environment that starts dsh.
 
 drillr also supports browser OAuth for MCP clients that implement it. When the official DSH MCP client ships OAuth, this plugin will switch to browser sign-in.
 
-Tested on DeepSeek Harness Desktop 0.2.2-rc.2 (macOS).
+Tested on DeepSeek Harness Desktop 0.2.2-rc.5 (macOS). Requires DeepSeek Harness 0.2.2-rc.1 or later.
 
 ## Privacy
 

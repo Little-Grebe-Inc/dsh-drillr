@@ -7,15 +7,23 @@
  * page (client.js) save, inspect and remove that credential through the DSH
  * credential store, so the key never lands in a config file or in the chat.
  *
+ * The page talks to this plugin over DSH's own Fetch routes
+ * (`ctx.connection.fetch.register`), not raw `webServer` routes, so every call
+ * passes the DSH access check first: the Host/Origin fence plus the signed
+ * browser-session cookie, owner Peer only. A web page open in the same browser
+ * can neither read the key status nor replace or delete the key.
+ *
  * A key is saved only after it passes two checks: it has to look like a drillr
  * key, and a live `initialize` call to the gateway has to accept it. A pasted
  * URL, a typo or a revoked key therefore can never replace a working one.
  */
 export const name = 'dsh-drillr'
-export const inject = ['webServer', 'credentials']
+export const inject = ['connection', 'credentials']
 
 const REF = 'DRILLR_API_KEY'
-const PREFIX = '/drillr-api'
+/** Fetch routes live under DSH's `/api` channel, inside its access check. */
+export const STATUS_PATH = '/api/drillr/status'
+export const KEY_PATH = '/api/drillr/key'
 const MAX_BODY_BYTES = 4096
 const MAX_KEY_LENGTH = 512
 const PROBE_TOOL = 'mcp__drillr__ticker_lookup'
@@ -37,30 +45,10 @@ const PROBE_CALL = {
 
 const PROBE_TIMEOUT_MS = 10_000
 
-function sendJson(res, status, body) {
-  try {
-    res.writeHead(status, { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' })
-    res.end(JSON.stringify(body))
-  } catch {
-    // The client went away; nothing to report to.
-  }
-}
-
-function readBody(req) {
-  return new Promise((resolve, reject) => {
-    const chunks = []
-    let size = 0
-    req.on('data', (chunk) => {
-      size += chunk.length
-      if (size > MAX_BODY_BYTES) {
-        reject(new Error('request body too large'))
-        req.destroy()
-        return
-      }
-      chunks.push(chunk)
-    })
-    req.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')))
-    req.on('error', reject)
+function json(status, body) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' },
   })
 }
 
@@ -149,48 +137,46 @@ export function apply(ctx) {
     }
   }
 
-  ctx.effect(() => ctx.webServer.register({
-    kind: 'prefix',
-    path: PREFIX,
-    handler: async (req, res) => {
-      try {
-        const path = new URL(req.url || '/', 'http://local').pathname
-        if (path === `${PREFIX}/status` && req.method === 'GET') {
-          sendJson(res, 200, await status())
-          return
-        }
-        if (path === `${PREFIX}/key` && req.method === 'POST') {
-          let parsed
-          try {
-            parsed = JSON.parse(await readBody(req))
-          } catch {
-            sendJson(res, 400, { error: 'invalid-request' })
-            return
-          }
-          const { key, error } = normalizeKey(parsed && parsed.key)
-          if (error) {
-            sendJson(res, 400, { error })
-            return
-          }
-          const probe = await probeKey(key)
-          if (!probe.ok) {
-            sendJson(res, probe.error === 'rejected' ? 400 : 503, { error: probe.error })
-            return
-          }
-          await ctx.credentials.set(REF, key)
-          sendJson(res, 200, await status())
-          return
-        }
-        if (path === `${PREFIX}/key` && req.method === 'DELETE') {
-          await ctx.credentials.unset(REF)
-          sendJson(res, 200, await status())
-          return
-        }
-        sendJson(res, 404, { error: 'not-found' })
-      } catch (err) {
-        ctx.logger.warn('drillr: settings request failed: %s', err && err.message ? err.message : String(err))
-        sendJson(res, 500, { error: 'internal' })
-      }
-    },
-  }))
+  const saveKey = async (request) => {
+    const text = await request.text()
+    if (text.length > MAX_BODY_BYTES) return json(413, { error: 'invalid-request' })
+    let parsed
+    try {
+      parsed = JSON.parse(text)
+    } catch {
+      return json(400, { error: 'invalid-request' })
+    }
+    const { key, error } = normalizeKey(parsed && parsed.key)
+    if (error) return json(400, { error })
+    const probe = await probeKey(key)
+    if (!probe.ok) return json(probe.error === 'rejected' ? 400 : 503, { error: probe.error })
+    await ctx.credentials.set(REF, key)
+    return json(200, await status())
+  }
+
+  const guarded = (handler) => async (request) => {
+    try {
+      return await handler(request)
+    } catch (err) {
+      ctx.logger.warn('drillr: settings request failed: %s', err && err.message ? err.message : String(err))
+      return json(500, { error: 'internal' })
+    }
+  }
+
+  ctx.connection.fetch.register({
+    path: STATUS_PATH,
+    methods: ['GET'],
+    requestBody: 'buffered',
+    fetch: guarded(async () => json(200, await status())),
+  })
+  ctx.connection.fetch.register({
+    path: KEY_PATH,
+    methods: ['POST', 'DELETE'],
+    requestBody: 'buffered',
+    fetch: guarded(async (request) => {
+      if (request.method === 'POST') return saveKey(request)
+      await ctx.credentials.unset(REF)
+      return json(200, await status())
+    }),
+  })
 }

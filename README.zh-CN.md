@@ -30,7 +30,7 @@ dsh plugin --profile web add https://github.com/Little-Grebe-Inc/dsh-drillr/rele
 
 ## 设置 key
 
-1. 在 [drillr.ai/account/api-keys](https://drillr.ai/account/api-keys) 创建 API key。
+1. 在 [drillr.ai/account/api-keys](https://drillr.ai/account/api-keys?utm_source=dsh&utm_medium=plugin&utm_content=readme) 创建 API key。
 2. 在 DSH 打开 **设置 → drillr**，粘贴 key，点 **保存 key**。
 3. 页面显示 **Key：已保存**，几秒后显示 **工具：已连接**。
 
@@ -61,7 +61,7 @@ dsh plugin --profile web add https://github.com/Little-Grebe-Inc/dsh-drillr/rele
 | 信号 | `industry_inflections` | 对美股上市公司业绩电话会做结构化研究得出的行业拐点 |
 | 信号 | `ai_adoption` | 美股公司业绩电话会披露的具体企业 AI 应用 |
 
-每个工具的说明见 [drillr.ai/docs/mcp](https://drillr.ai/docs/mcp)。
+每个工具的说明见 [drillr.ai/docs/mcp](https://drillr.ai/docs/mcp?utm_source=dsh&utm_medium=plugin&utm_content=readme)。
 
 **覆盖范围。** 核心股票覆盖美股、日股（`7203.T`）和 A 股（`600519.SH` / `000001.SZ`）。部分数据集范围更窄（例如电话会只有美股和日股，分析师与持股数据只有美股）；每张表的覆盖范围以 `get_table_schema` 的说明为准。
 
@@ -71,14 +71,14 @@ dsh plugin --profile web add https://github.com/Little-Grebe-Inc/dsh-drillr/rele
 
 | 行 | 包 | 作用 |
 |---|---|---|
-| `drillr-settings` | `dsh-drillr` | **设置 → drillr** 页面，以及保存、查看、删除 `DRILLR_API_KEY` 凭据的本机接口 |
+| `drillr-settings` | `dsh-drillr` | **设置 → drillr** 页面，以及保存、查看、删除 `DRILLR_API_KEY` 凭据的本机接口。接口是 `/api/drillr/` 下的 DSH Fetch 路由，每个请求先过 DSH 的访问检查（同源 Host/Origin 和签名会话 cookie）才到插件；浏览器里打开的其他网页调用不了 |
 | `drillr-mcp` | `@deepseek-ai/dsh-mcp-client` | 官方 MCP 客户端：Streamable HTTP 连 `https://gateway.drillr.ai/mcp/data`，请求头 `Authorization: Bearer ${credential:DRILLR_API_KEY}` |
 
 key 保存之前，MCP 这一行会等待凭据，不会报错。保存、替换或删除 key 都无需重启。也可以把 key 写成 `$DSH_HOME/.env` 里的 `DRILLR_API_KEY`，或放在启动 dsh 的环境变量里。
 
 drillr 对支持 OAuth 的 MCP 客户端提供浏览器登录。DSH 官方 MCP 客户端发布 OAuth 后，本插件会改成浏览器登录。
 
-已在 DeepSeek Harness 桌面版 0.2.2-rc.2（macOS）上测试。
+已在 DeepSeek Harness 桌面版 0.2.2-rc.5（macOS）上测试。需要 DeepSeek Harness 0.2.2-rc.1 及以上。
 
 ## 隐私
 

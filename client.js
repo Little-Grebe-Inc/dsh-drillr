@@ -1,6 +1,6 @@
 // drillr settings page for DeepSeek Harness (browser half).
 // Saves the drillr API key into the DSH credential store through the host
-// routes in index.js. The ModuleLoader id must equal the package name.
+// Fetch routes in index.js (inside DSH's access check). The ModuleLoader id must equal the package name.
 window.__ModuleLoader__.load({
   id: 'dsh-drillr',
   factory(require) {
@@ -8,8 +8,10 @@ window.__ModuleLoader__.load({
     const h = React.createElement
     const { useEffect, useState } = React
 
-    const KEYS_URL = 'https://drillr.ai/account/api-keys'
-    const DOCS_URL = 'https://drillr.ai/docs/mcp'
+    // utm_* lets drillr count visits and sign-ups that came from this page.
+    const UTM = '?utm_source=dsh&utm_medium=plugin&utm_content=settings'
+    const KEYS_URL = 'https://drillr.ai/account/api-keys' + UTM
+    const DOCS_URL = 'https://drillr.ai/docs/mcp' + UTM
 
     const DICTS = {
       en: {
@@ -95,7 +97,9 @@ window.__ModuleLoader__.load({
     }
 
     function request(method, path, body) {
-      return fetch('/drillr-api' + path, {
+      // Relative, like DSH's own pages: the request goes to the host's /api
+      // channel with the session cookie and passes the DSH access check.
+      return fetch('api/drillr' + path, {
         method,
         cache: 'no-store',
         headers: body ? { 'content-type': 'application/json' } : undefined,
